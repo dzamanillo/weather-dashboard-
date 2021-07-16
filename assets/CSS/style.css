@@ -1,0 +1,32 @@
+* {
+	margin: 0;
+	padding: 0;
+	box-sizing: border-box;
+}
+
+.gradient {
+	/* fallback for old browsers */
+	background: #3a6bc0;
+
+	/* Chrome 10-25, Safari 5.1-6 */
+	background: -webkit-linear-gradient(
+		to right,
+		rgba(58, 107, 192, 1),
+		rgba(35, 8, 86, 1)
+	);
+
+	/* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
+	background: linear-gradient(
+		to right,
+		rgba(58, 107, 192, 1),
+		rgba(35, 8, 86, 1)
+	);
+}
+
+.card {
+	background-color: #33475b;
+}
+
+#city-search-area {
+	height: 2.2rem;
+}
