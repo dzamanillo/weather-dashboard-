@@ -129,12 +129,28 @@ var forecastFetch = function () {
 			removeAllChildNodes(forecastContainerEl);
 
 			// TODO UV Index
+			var uvTitle = document.createElement("p");
+			uvTitle.textContent = "UV Index: ";
+
+			var uvSpan = document.createElement("span");
 			var uvIndex = data.current.uvi;
-			var selectedCityUvIndex = document.createElement("p");
-			selectedCityUvIndex.innerHTML = "UV Index: " + uvIndex;
+			uvSpan.textContent = uvIndex;
+			if (uvIndex < 3) {
+				uvSpan.setAttribute("class", "badge bg-success");
+			}
+			if (uvIndex > 3 && uvIndex < 6) {
+				uvSpan.setAttribute("class", "badge bg-warning text-dark");
+			}
 
-			selectedCityEl.append(selectedCityUvIndex);
+			if (uvIndex > 6) {
+				uvSpan.setAttribute("class", "badge bg-danger");
+			}
 
+			uvTitle.append(uvSpan);
+
+			selectedCityEl.append(uvTitle);
+
+			// Forecast Title
 			var forecastTitle = document.createElement("h4");
 			forecastTitle.textContent = "5-Day Forecast:";
 
