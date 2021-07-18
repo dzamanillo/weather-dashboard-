@@ -60,6 +60,13 @@ var cityFetch = function () {
 			var selectedCityTitle = document.createElement("h2");
 			selectedCityTitle.textContent = city;
 
+			// Date
+			var date = moment().format("M/DD/YYYY");
+			var selectedCityDate = document.createElement("span");
+			selectedCityDate.innerHTML = " (" + date + ") ";
+
+			selectedCityTitle.append(selectedCityDate);
+
 			// Temp
 			var temp = data.main.temp;
 			var selectedCityTemp = document.createElement("p");
