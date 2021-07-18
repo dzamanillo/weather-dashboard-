@@ -2,11 +2,11 @@ var saveCitiesEl = document.querySelector("#saved-cities");
 var searchBtnEl = document.querySelector("#search-btn");
 var searchAreaEl = document.querySelector("#city-search-area");
 var selectedCityEl = document.querySelector("#selected-city-stats");
+var forecastContainerEl = document.querySelector("#forecast-container");
 var cityName;
 var lat;
 var lon;
 
-console.log(selectedCityEl);
 // Get or create "cities" in local storage
 var cities = JSON.parse(localStorage.getItem("cities")) || [];
 
@@ -34,7 +34,7 @@ function removeAllChildNodes(parent) {
 var getCityName = function (event) {
 	if (event.target.dataset.btn === "city") {
 		var clickedCityName = event.target.value;
-		console.log(clickedCityName);
+
 		cityName = clickedCityName;
 	}
 };
@@ -51,21 +51,30 @@ var cityFetch = function () {
 			return response.json();
 		})
 		.then(function (data) {
-			console.log(data);
-
 			removeAllChildNodes(selectedCityEl);
+
+			selectedCityEl.setAttribute("class", "row border border-dark");
 
 			// City
 			var city = data.name;
 			var selectedCityTitle = document.createElement("h2");
 			selectedCityTitle.textContent = city;
+			selectedCityTitle.setAttribute("id", "selected-city-title");
 
 			// Date
 			var date = moment().format("M/DD/YYYY");
 			var selectedCityDate = document.createElement("span");
 			selectedCityDate.innerHTML = " (" + date + ") ";
 
-			selectedCityTitle.append(selectedCityDate);
+			//Icon
+			var icon = data.weather[0].icon;
+
+			var iconUrl = "http://openweathermap.org/img/wn/" + icon + "@2x.png";
+
+			var selectedCityIcon = document.createElement("img");
+			selectedCityIcon.setAttribute("src", iconUrl);
+			selectedCityIcon.setAttribute("alt", "weather icon");
+			selectedCityIcon.setAttribute("id", "today-weather-icon");
 
 			// Temp
 			var temp = data.main.temp;
@@ -82,24 +91,96 @@ var cityFetch = function () {
 			var selectedCityHumidity = document.createElement("p");
 			selectedCityHumidity.innerHTML = "Humidity: " + humidity;
 
-			// TODO UV Index
-			// var uvIndex = data.main.uvIndex;
-			var uvIndex = "To Do";
-			var selectedCityUvIndex = document.createElement("p");
-			selectedCityUvIndex.innerHTML = "UV Index: " + uvIndex;
-
 			lat = data.coord.lat;
 			lon = data.coord.lon;
 
-			console.log(lat, lon);
+			selectedCityTitle.append(selectedCityDate, selectedCityIcon);
 
 			selectedCityEl.append(
 				selectedCityTitle,
 				selectedCityTemp,
 				selectedCityWind,
-				selectedCityHumidity,
-				selectedCityUvIndex
+				selectedCityHumidity
 			);
+			forecastFetch();
+		});
+};
+
+// * Forecast Fetch Function
+var forecastFetch = function () {
+	console.log(lat, lon);
+
+	var apiUrl =
+		"https://api.openweathermap.org/data/2.5/onecall?lat=" +
+		lat +
+		"&lon=" +
+		lon +
+		"&units=imperial&exclude=minutely,hourly,alerts&appid=393222282915c98d946ff653251f7404";
+
+	console.log(apiUrl);
+
+	fetch(apiUrl)
+		.then(function (response) {
+			return response.json();
+		})
+		.then(function (data) {
+			console.log(data);
+
+			removeAllChildNodes(forecastContainerEl);
+
+			// TODO UV Index
+			var uvIndex = data.current.uvi;
+			var selectedCityUvIndex = document.createElement("p");
+			selectedCityUvIndex.innerHTML = "UV Index: " + uvIndex;
+
+			selectedCityEl.append(selectedCityUvIndex);
+
+			var forecastTitle = document.createElement("h4");
+			forecastTitle.textContent = "5-Day Forecast:";
+
+			forecastContainerEl.append(forecastTitle);
+
+			// Cards
+			for (var i = 1; i < 6; i++) {
+				var card = document.createElement("div");
+				card.setAttribute("class", "col card text-light m-1");
+
+				var cardBody = document.createElement("div");
+				cardBody.setAttribute("class", "card-body p-1");
+
+				//Date
+				var cardDate = document.createElement("h4");
+				var date = moment(data.daily[i].dt, "X").format("M/DD/YYYY");
+				cardDate.textContent = date;
+
+				// Icon
+				var cardIcon = document.createElement("img");
+				icon = data.daily[i].weather[0].icon;
+				console.log(icon);
+				iconUrl = "http://openweathermap.org/img/wn/" + icon + "@2x.png";
+				cardIcon.setAttribute("src", iconUrl);
+				cardIcon.setAttribute("alt", "weather icon");
+				cardIcon.setAttribute("class", "card-icon");
+
+				// Temp
+				cardTemp = document.createElement("p");
+				var temp = data.daily[i].temp.day;
+				cardTemp.textContent = "Temp: " + temp + "°F";
+
+				// Wind
+				cardWind = document.createElement("p");
+				var wind = data.daily[i].wind_speed;
+				cardWind.textContent = "Wind: " + wind + " MPH";
+
+				//Humidity
+				cardHumidity = document.createElement("p");
+				var humidity = data.daily[i].humidity;
+				cardHumidity.textContent = "Humidity: " + humidity + "%";
+
+				cardBody.append(cardDate, cardIcon, cardTemp, cardWind, cardHumidity);
+				card.append(cardBody);
+				forecastContainerEl.append(card);
+			}
 		});
 };
 

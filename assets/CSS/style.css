@@ -27,6 +27,22 @@
 	background-color: #33475b;
 }
 
+.card-icon {
+	width: 4rem;
+}
+
 #city-search-area {
 	height: 2.2rem;
+}
+
+#selected-city-title {
+	margin-bottom: 0px;
+}
+
+#today-weather-icon {
+	width: 4rem;
+}
+
+#forecast-container {
+	margin-top: 1rem;
 }
