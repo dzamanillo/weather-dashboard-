@@ -39,8 +39,63 @@ var getCityName = function (event) {
 	}
 };
 
+// * Main Builder Function
+var mainBuilder = function (data) {
+	removeAllChildNodes(selectedCityEl);
+
+	selectedCityEl.setAttribute("class", "row border border-dark");
+
+	// City
+	var city = data.name;
+	var selectedCityTitle = document.createElement("h2");
+	selectedCityTitle.textContent = city;
+	selectedCityTitle.setAttribute("id", "selected-city-title");
+
+	// Date
+	var date = moment().format("M/DD/YYYY");
+	var selectedCityDate = document.createElement("span");
+	selectedCityDate.innerHTML = " (" + date + ") ";
+
+	//Icon
+	var icon = data.weather[0].icon;
+
+	var iconUrl = "http://openweathermap.org/img/wn/" + icon + "@2x.png";
+
+	var selectedCityIcon = document.createElement("img");
+	selectedCityIcon.setAttribute("src", iconUrl);
+	selectedCityIcon.setAttribute("alt", "weather icon");
+	selectedCityIcon.setAttribute("id", "today-weather-icon");
+
+	// Temp
+	var temp = data.main.temp;
+	var selectedCityTemp = document.createElement("p");
+	selectedCityTemp.innerHTML = "Temp: " + temp;
+
+	// Wind
+	var wind = data.wind.speed;
+	var selectedCityWind = document.createElement("p");
+	selectedCityWind.innerHTML = "Wind: " + wind;
+
+	//Humidity
+	var humidity = data.main.humidity;
+	var selectedCityHumidity = document.createElement("p");
+	selectedCityHumidity.innerHTML = "Humidity: " + humidity;
+
+	lat = data.coord.lat;
+	lon = data.coord.lon;
+
+	selectedCityTitle.append(selectedCityDate, selectedCityIcon);
+
+	selectedCityEl.append(
+		selectedCityTitle,
+		selectedCityTemp,
+		selectedCityWind,
+		selectedCityHumidity
+	);
+};
+
 //* City Fetch Function
-var cityFetch = function () {
+var cityFetch = function (cityName) {
 	var apiUrl =
 		"https://api.openweathermap.org/data/2.5/weather?q=" +
 		cityName +
@@ -51,65 +106,17 @@ var cityFetch = function () {
 			return response.json();
 		})
 		.then(function (data) {
-			removeAllChildNodes(selectedCityEl);
-
-			selectedCityEl.setAttribute("class", "row border border-dark");
-
-			// City
-			var city = data.name;
-			var selectedCityTitle = document.createElement("h2");
-			selectedCityTitle.textContent = city;
-			selectedCityTitle.setAttribute("id", "selected-city-title");
-
-			// Date
-			var date = moment().format("M/DD/YYYY");
-			var selectedCityDate = document.createElement("span");
-			selectedCityDate.innerHTML = " (" + date + ") ";
-
-			//Icon
-			var icon = data.weather[0].icon;
-
-			var iconUrl = "http://openweathermap.org/img/wn/" + icon + "@2x.png";
-
-			var selectedCityIcon = document.createElement("img");
-			selectedCityIcon.setAttribute("src", iconUrl);
-			selectedCityIcon.setAttribute("alt", "weather icon");
-			selectedCityIcon.setAttribute("id", "today-weather-icon");
-
-			// Temp
-			var temp = data.main.temp;
-			var selectedCityTemp = document.createElement("p");
-			selectedCityTemp.innerHTML = "Temp: " + temp;
-
-			// Wind
-			var wind = data.wind.speed;
-			var selectedCityWind = document.createElement("p");
-			selectedCityWind.innerHTML = "Wind: " + wind;
-
-			//Humidity
-			var humidity = data.main.humidity;
-			var selectedCityHumidity = document.createElement("p");
-			selectedCityHumidity.innerHTML = "Humidity: " + humidity;
-
-			lat = data.coord.lat;
-			lon = data.coord.lon;
-
-			selectedCityTitle.append(selectedCityDate, selectedCityIcon);
-
-			selectedCityEl.append(
-				selectedCityTitle,
-				selectedCityTemp,
-				selectedCityWind,
-				selectedCityHumidity
-			);
+			console.log(data);
+			mainBuilder(data);
 			forecastFetch();
+		})
+		.catch(function (err) {
+			console.log(err);
 		});
 };
 
 // * Forecast Fetch Function
 var forecastFetch = function () {
-	console.log(lat, lon);
-
 	var apiUrl =
 		"https://api.openweathermap.org/data/2.5/onecall?lat=" +
 		lat +
@@ -117,18 +124,14 @@ var forecastFetch = function () {
 		lon +
 		"&units=imperial&exclude=minutely,hourly,alerts&appid=393222282915c98d946ff653251f7404";
 
-	console.log(apiUrl);
-
 	fetch(apiUrl)
 		.then(function (response) {
 			return response.json();
 		})
 		.then(function (data) {
-			console.log(data);
-
 			removeAllChildNodes(forecastContainerEl);
 
-			// TODO UV Index
+			// UV Index
 			var uvTitle = document.createElement("p");
 			uvTitle.textContent = "UV Index: ";
 
@@ -172,7 +175,6 @@ var forecastFetch = function () {
 				// Icon
 				var cardIcon = document.createElement("img");
 				icon = data.daily[i].weather[0].icon;
-				console.log(icon);
 				iconUrl = "http://openweathermap.org/img/wn/" + icon + "@2x.png";
 				cardIcon.setAttribute("src", iconUrl);
 				cardIcon.setAttribute("alt", "weather icon");
@@ -203,7 +205,7 @@ var forecastFetch = function () {
 //* Saved City Button Handler Function
 var savedCityBtnHandler = function (event) {
 	getCityName(event);
-	cityFetch();
+	cityFetch(cityName);
 };
 
 //@ Search Button Adds Value to "cities" Local Storage
@@ -212,26 +214,28 @@ searchBtnEl.addEventListener("click", function () {
 	if (!searchAreaEl.value) {
 		alert("Please Enter a City");
 		return;
-	} else {
-		saveCitiesEl.innerHTML = "";
-		console.log(searchAreaEl.value);
-
-		// Push protect
-		if (cities.indexOf(searchAreaEl.value) === -1) {
-			cities.push(searchAreaEl.value);
-		}
-
-		removeAllChildNodes(selectedCityEl);
-		cityName = searchAreaEl.value;
-		cityFetch();
-
-		// Update localStorage after adding new city
-		localStorage.setItem("cities", JSON.stringify(cities));
-
-		// Build List from local
-		buildMenu();
-		searchAreaEl.value = "";
 	}
+
+	saveCitiesEl.innerHTML = "";
+
+	removeAllChildNodes(selectedCityEl);
+	cityName = searchAreaEl.value;
+
+	var RES = cityFetch(cityName);
+
+	console.log(RES);
+
+	// Push protect
+	if (cities.indexOf(searchAreaEl.value) === -1) {
+		cities.push(searchAreaEl.value);
+	}
+
+	// Update localStorage after adding new city
+	localStorage.setItem("cities", JSON.stringify(cities));
+
+	// Build List from local
+	buildMenu();
+	searchAreaEl.value = "";
 });
 
 //@ City Buttons
